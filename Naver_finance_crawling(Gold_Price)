@@ -1,0 +1,33 @@
+import requests
+import pandas as pd
+from bs4 import BeautifulSoup
+url = 'https://finance.naver.com/marketindex/worldDailyQuote.nhn?marketindexCd=CMDT_GC&fdtc=2&page=1'
+headers = {"user-agent" : 'https://finance.naver.com/marketindex/worldGoldDetail.nhn?marketindexCd=CMDT_GC&fdtc=2',
+          "referer":"https://finance.naver.com/marketindex/worldGoldDetail.nhn?marketindexCd=CMDT_GC&fdtc=2"}
+response = requests.get(url, headers = headers)
+soup = BeautifulSoup(response.text, "html.parser")
+lis = soup.select_one('tbody')
+newdf = pd.DataFrame()
+
+#과거 데이터를 가져오기 위한 URL for문
+for b in range(1,52):
+    new_url="https://finance.naver.com/marketindex/worldDailyQuote.nhn?marketindexCd=CMDT_GC&fdtc=2&page=" + str(b)
+    new_response = requests.get(new_url, headers=headers)
+    new_soup = BeautifulSoup(new_response.text, "html.parser")
+    new_results = new_soup.find('tbody').text.split() 
+
+#csv파일로 만들기 위해 리스트 행렬 4개 나눔
+    def list_divide(lst, n):
+        return [lst[i:i+n] for i in range(0, len(lst), n)]
+    new_results = new_results
+    list_divide = list_divide(new_results, 4)
+    
+#csv 파일 형태로 변환
+    int_gold_data = pd.DataFrame(list_divide)
+    int_gold_data.columns = ["날짜", "종가($)","전일대비($)", "등락율"]
+
+#각 페이지에 있는 데이터를 합치기     
+    newdf_temp = int_gold_data
+    newdf = newdf.append(newdf_temp, ignore_index = True)
+    newdf.to_csv('gold_data.csv', encoding = 'cp949')
+newdf
