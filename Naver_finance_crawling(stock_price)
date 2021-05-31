@@ -1,0 +1,12 @@
+import requests as rq
+import pandas as pd
+import requests
+headers = {'User-agent':"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"} 
+df = pd.DataFrame()
+for i in range(1, 36):
+    url = 'https://finance.naver.com/item/sise_day.nhn?code=035720' + str(i)
+    table = pd.read_html(requests.get(url,headers=headers).text,encoding="cp949")
+    df_temp = table[0]
+    df = df.append(df_temp, ignore_index = True)
+Hyundai_Car_stock = df.dropna()    
+Hyundai_Car_stock.to_csv('Hyundai_car_stock.csv', encoding = 'cp949')
