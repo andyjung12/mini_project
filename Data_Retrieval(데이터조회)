@@ -1,0 +1,347 @@
+import requests as rq
+import pandas as pd
+import requests
+from bs4 import BeautifulSoup
+
+Data_search = input("조회하고 싶은 투자 종목을 써주세요: ")
+
+#현대차 (naver_finance)
+if Data_search == "현대차" or Data_search == "Hyundai Car" or Data_search == "Hyundai car" or Data_search == "hyundai car":
+    headers = {'User-agent':"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"} 
+    df = pd.DataFrame()
+    for i in range(1, 36):
+        url = 'https://finance.naver.com/item/sise_day.nhn?code=035720&page=' + str(i)
+        table = pd.read_html(requests.get(url,headers=headers).text,encoding="cp949")
+        df_temp = table[0]
+        df = df.append(df_temp, ignore_index = True)
+    Hyundai_Car_stock = df.dropna()    
+    Hyundai_Car_stock.to_csv('Hyundai_car_stock.csv', encoding = 'cp949')
+    print(Hyundai_Car_stock)
+    print("출처:finance.naver.com")
+
+#금 (naver_finance)
+elif Data_search == "금" or Data_search == "gold" or Data_search == "Gold":
+    url = 'https://finance.naver.com/marketindex/worldDailyQuote.nhn?marketindexCd=CMDT_GC&fdtc=2&page=1'
+    headers = {"user-agent" : 'https://finance.naver.com/marketindex/worldGoldDetail.nhn?marketindexCd=CMDT_GC&fdtc=2',
+          "referer":"https://finance.naver.com/marketindex/worldGoldDetail.nhn?marketindexCd=CMDT_GC&fdtc=2"}
+    response = requests.get(url, headers = headers)
+    soup = BeautifulSoup(response.text, "html.parser")
+    lis = soup.select_one('tbody')
+    newdf = pd.DataFrame()
+
+    for b in range(1,52):
+        new_url="https://finance.naver.com/marketindex/worldDailyQuote.nhn?marketindexCd=CMDT_GC&fdtc=2&page=" + str(b)
+        new_response = requests.get(new_url, headers=headers)
+        new_soup = BeautifulSoup(new_response.text, "html.parser")
+        new_results = new_soup.find('tbody').text.split() 
+
+        def list_divide(lst, n):
+            return [lst[i:i+n] for i in range(0, len(lst), n)]
+        new_results = new_results
+        list_divide = list_divide(new_results, 4)
+    
+        int_gold_data = pd.DataFrame(list_divide)
+        int_gold_data.columns = ["날짜", "종가($)","전일대비($)", "등락률"]
+    
+        newdf_temp = int_gold_data
+        newdf = newdf.append(newdf_temp, ignore_index = True)
+        newdf.to_csv('gold_data.csv', encoding = 'cp949')
+    print(newdf)
+    print("출처:finance.naver.com")
+
+#네이버 (naver_finance)
+elif Data_search == "네이버" or Data_search == "naver" or Data_search == "Naver":
+    headers = {"user-agent" : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36',
+              "referer":'https://finance.naver.com/item/sise.nhn?code=035420'} 
+    df = pd.DataFrame()
+    for i in range(1, 36):
+        url = 'https://finance.naver.com/item/sise_day.nhn?code=035420&page=' + str(i)
+        table = pd.read_html(requests.get(url, headers = headers).text, encoding="cp949")
+        df_temp = table[0]
+        df = df.append(df_temp, ignore_index = True)
+    Naver_stock = df.dropna()    
+    Naver_stock.to_csv('Naver_stock.csv', encoding = 'cp949')
+    print(Naver_stock)
+    print("출처:finance.naver.com")
+
+#셀트리온 (naver_finance)
+elif Data_search == "셀트리온" or Data_search == "Celltrion" or Data_search == "celltrion":
+    headers = {"user-agent" : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36',
+          "referer":"https://finance.naver.com/item/sise.nhn?code=068270"} 
+    df = pd.DataFrame()
+    for i in range(1, 36):
+        url = 'https://finance.naver.com/item/sise_day.nhn?code=068270&page=' + str(i)
+        table = pd.read_html(requests.get(url, headers = headers).text, encoding="cp949")
+        df_temp = table[0]
+        df = df.append(df_temp, ignore_index = True)
+    Celltrion_stock = df.dropna()    
+    Celltrion_stock.to_csv('Celltrion_stock.csv', encoding = 'cp949')
+    print(Celltrion_stock)
+    print("출처:finance.naver.com")
+
+#아마존 (investing.com)    
+elif Data_search == "아마존" or Data_search == "Amazon" or Data_search == "amazon":
+    url  = "https://kr.investing.com/instruments/HistoricalDataAjax"
+    headers = {
+        "content-type": "application/x-www-form-urlencoded",
+        "origin":"https://kr.investing.com",
+        "referer": "https://kr.investing.com/indices/investing.com-btc-usd-historical-data",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36",
+        "x-requested-with": "XMLHttpRequest"
+    }
+    data = {
+    "curr_id": "6435",
+    "smlID": "1159981",
+    "header": "null",
+    "st_date": "2020/01/01",
+    "end_date": "2021/05/28",
+    "interval_sec": "Daily",
+    "sort_col": "date",
+    "sort_ord": "DESC",
+    "action": "historical_data"
+    }
+    session = requests.Session()
+    res = requests.post(url, headers=headers,data=data)
+    soup = BeautifulSoup(res.text, "html.parser")
+    bit_list = soup.select("#curr_table > tbody > tr")
+    invest= pd.DataFrame()
+    for li in bit_list:
+        if li.select_one("td"):
+            td_list = li.select("td")
+            data = {'날짜' : [format(td_list[0].text)], '가격':[format(td_list[1].text)], '변동': [format(td_list[6].text)]}
+            df = pd.DataFrame(data)
+            invest_temp=df
+            invest=invest.append(invest_temp,ignore_index=True)
+    invest.to_csv("아마존.csv", encoding = 'cp949')
+    print(invest)
+    print("출처:investing.com")
+
+elif Data_search == "도지코인" or Data_search == "dogecoin" or Data_search == "Doge Coin" or Data_search == "Dogecoin":
+    url  = "https://kr.investing.com/instruments/HistoricalDataAjax"
+    headers = {
+        "content-type": "application/x-www-form-urlencoded",
+        "origin":"https://kr.investing.com",
+        "referer": "https://kr.investing.com/indices/investing.com-btc-usd-historical-data",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36",
+        "x-requested-with": "XMLHttpRequest"
+    }
+    data = {
+    "curr_id": "1061477",
+    "smlID": "25738436",
+    "header": "null",
+    "st_date": "2020/01/01",
+    "end_date": "2021/05/28",
+    "interval_sec": "Daily",
+    "sort_col": "date",
+    "sort_ord": "DESC",
+    "action": "historical_data"
+    }
+    session = requests.Session()
+    res = requests.post(url, headers=headers,data=data)
+    soup = BeautifulSoup(res.text, "html.parser")
+    bit_list = soup.select("#curr_table > tbody > tr")
+    invest= pd.DataFrame()
+    for li in bit_list:
+        if li.select_one("td"):
+            td_list = li.select("td")
+            data = {'날짜' : [format(td_list[0].text)], '가격':[format(td_list[1].text)], '변동': [format(td_list[6].text)]}
+            df = pd.DataFrame(data)
+            invest_temp=df
+            invest=invest.append(invest_temp,ignore_index=True)
+    invest.to_csv('Dogecoin.csv', encoding='cp949')
+    print(invest)
+    print("출처:investing.com")
+
+#이더리움 (investing.com)
+elif Data_search == "이더리움" or Data_search == "Ethereum" or Data_search == "ethereum":
+    url  = "https://kr.investing.com/instruments/HistoricalDataAjax"
+    headers = {
+        "content-type": "application/x-www-form-urlencoded",
+        "origin":"https://kr.investing.com",
+        "referer": "https://kr.investing.com/indices/investing.com-btc-usd-historical-data",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36",
+        "x-requested-with": "XMLHttpRequest"
+    }
+    data = {
+    "curr_id": "1058142",
+    "smlID": "138960",
+    "header": "ETH/USD+Bibox+내역",
+    "st_date": "2020/01/01",
+    "end_date": "2021/05/28",
+    "interval_sec": "Daily",
+    "sort_col": "date",
+    "sort_ord": "DESC",
+    "action": "historical_data"
+    }
+    session = requests.Session()
+    res = requests.post(url, headers=headers,data=data)
+    soup = BeautifulSoup(res.text, "html.parser")
+    bit_list = soup.select("#curr_table > tbody > tr")
+    invest= pd.DataFrame()
+    for li in bit_list:
+        if li.select_one("td"):
+            td_list = li.select("td")
+            data = {'날짜' : [format(td_list[0].text)], '가격':[format(td_list[1].text)], '변동': [format(td_list[6].text)]}
+            df = pd.DataFrame(data)
+            invest_temp=df
+            invest=invest.append(invest_temp,ignore_index=True)
+    invest.to_csv('Ethereum.csv', encoding='cp949')
+    print(invest)
+    print("출처:investing.com")
+
+# 애플 (investing.com)
+elif Data_search == "애플" or Data_search == "Apple" or Data_search == "apple":
+    url  = "https://kr.investing.com/instruments/HistoricalDataAjax"
+    headers = {
+        "content-type": "application/x-www-form-urlencoded",
+        "origin":"https://kr.investing.com",
+        "referer": "https://kr.investing.com/equities/apple-computer-inc-historical-data",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36",
+        "x-requested-with": "XMLHttpRequest"
+    }
+    data = {
+    "curr_id": "6408",
+    "smlID": "1159963",
+    "header": "null",
+    "st_date": "2020/01/01",
+    "end_date": "2021/05/28",
+    "interval_sec": "Daily",
+    "sort_col": "date",
+    "sort_ord": "DESC",
+    "action": "historical_data"
+    }
+    session = requests.Session()
+    res = requests.post(url, headers=headers,data=data)
+    soup = BeautifulSoup(res.text, "html.parser")
+    bit_list = soup.select("#curr_table > tbody > tr")
+    Apple_stock= pd.DataFrame()
+    for li in bit_list:
+        if li.select_one("td"):
+            td_list = li.select("td")
+            data = {'날짜' : [format(td_list[0].text)], '가격':[format(td_list[1].text)], '변동': [format(td_list[6].text)]}
+            df = pd.DataFrame(data)
+            Apple_stock_temp=df
+            Apple_stock=Apple_stock.append(Apple_stock_temp,ignore_index=True)
+    Apple_stock.to_csv("Apple_stock.csv", encoding = 'cp949')
+    print(Apple_stock)
+    print("출처:investing.com")
+
+#구글 (investing.com)    
+elif Data_search == "구글" or Data_search == "Google" or Data_search == "google":
+    url  = "https://kr.investing.com/instruments/HistoricalDataAjax"
+    headers = {
+        "content-type": "application/x-www-form-urlencoded",
+        "origin":"https://kr.investing.com",
+        "referer": "https://kr.investing.com/indices/investing.com-btc-usd-historical-data",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36",
+        "x-requested-with": "XMLHttpRequest"
+    }
+    data = {
+    "curr_id": "6369",
+    "smlID": "1159928",
+    "header": "GOOGL+역사적+데이터",
+    "st_date": "2020/01/01",
+    "end_date": "2021/05/28",
+    "interval_sec": "Daily",
+    "sort_col": "date",
+    "sort_ord": "DESC",
+    "action": "historical_data"
+    }
+    session = requests.Session()
+    res = requests.post(url, headers=headers,data=data)
+    soup = BeautifulSoup(res.text, "html.parser")
+    bit_list = soup.select("#curr_table > tbody > tr")
+    invest= pd.DataFrame()
+    for li in bit_list:
+        if li.select_one("td"):
+            td_list = li.select("td")
+            data = {'날짜' : [format(td_list[0].text)], '가격':[format(td_list[1].text)], '변동': [format(td_list[6].text)]}
+            df = pd.DataFrame(data)
+            invest_temp=df
+            invest=invest.append(invest_temp,ignore_index=True)
+    invest.to_csv('Google.csv', encoding='cp949')
+    print(invest)
+    print("출처:investing.com")
+
+# 카카오 (Naver_Finance)
+elif Data_search == '카카오' or Data_search == 'Kakao' or Data_search == 'kakao':
+    headers = {'User-agent':"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"} 
+    df = pd.DataFrame()
+
+    for i in range(1, 36):
+        url = 'https://finance.naver.com/item/sise_day.nhn?code=035720&page=' + str(i)
+        table = pd.read_html(requests.get(url,headers=headers).text,encoding="cp949")
+        df_temp = table[0]
+        df = df.append(df_temp, ignore_index = True)
+    Kakao_stock = df.dropna()    
+    Kakao_stock.to_csv('Kakao_stock.csv', encoding = 'cp949')
+    print(Kakao_stock)
+    print("출처:finance.naver.com")
+
+# LG전자 (Naver_Finance)
+elif Data_search == 'LG전자' or Data_search == '엘지전자' or Data_search == 'LG Electronics' or Data_search == "lg전자":
+    headers = {'User-agent':"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"} 
+    df = pd.DataFrame()
+    for i in range(1, 36):
+        url = 'https://finance.naver.com/item/sise_day.nhn?code=066570&page=' + str(i)
+        table = pd.read_html(requests.get(url,headers=headers).text,encoding="cp949")
+        df_temp = table[0]
+        df = df.append(df_temp, ignore_index = True)
+    LGElec_stock = df.dropna()    
+    LGElec_stock.to_csv('LGElec_stock.csv', encoding = 'cp949')
+    print(LGElec_stock)
+    print("출처:finance.naver.com")
+
+#삼성전자(naver_finance)
+elif Data_search == "Samsung Electronics" or Data_search == "삼성전자" or Data_search == "samsung electronics":
+    headers = {'User-agent':"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"} 
+    df = pd.DataFrame()
+    for i in range(1, 36):
+        url = 'https://finance.naver.com/item/sise_day.nhn?code=005930&page=' + str(i)
+        table = pd.read_html(requests.get(url,headers=headers).text,encoding="cp949")
+        df_temp = table[0]
+        df = df.append(df_temp, ignore_index = True)
+    samsung=df.dropna()
+    samsung.to_csv("삼성전자_데이터.csv", encoding = 'cp949')
+    print(samsung)
+    print("출처:finance.naver.com")
+
+# 마이크로소프트 (investing.com)
+elif Data_search == '마이크로소프트' or Data_search == 'Microsoft' or Data_search == 'MS' or Data_search == 'microsoft':
+    url  = "https://kr.investing.com/instruments/HistoricalDataAjax"
+    headers = {
+        "content-type": "application/x-www-form-urlencoded",
+        "origin":"https://kr.investing.com",
+        "referer": "https://kr.investing.com/equities/microsoft-corp-historical-data",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36",
+        "x-requested-with": "XMLHttpRequest"
+    }
+    data = {
+    "curr_id": "252",
+    "smlID": "1159490",
+    "header": "null",
+    "st_date": "2020/01/01",
+    "end_date": "2021/05/28",
+    "interval_sec": "Daily",
+    "sort_col": "date",
+    "sort_ord": "DESC",
+    "action": "historical_data"
+    }
+    session = requests.Session()
+    res = requests.post(url, headers=headers,data=data)
+    soup = BeautifulSoup(res.text, "html.parser")
+    bit_list = soup.select("#curr_table > tbody > tr")
+    invest= pd.DataFrame()
+    for li in bit_list:
+        if li.select_one("td"):
+            td_list = li.select("td")
+            data = {'날짜' : [format(td_list[0].text)], '가격':[format(td_list[1].text)], '변동': [format(td_list[6].text)]}
+            df = pd.DataFrame(data)
+            invest_temp=df
+            invest=invest.append(invest_temp,ignore_index=True)
+    invest.to_csv("Microsoft.csv", encoding = 'cp949')
+    print(invest)
+    print('출처:investing.com')
+
+else: 
+    print('업데이트 중이거나 없는 종목입니다.')
